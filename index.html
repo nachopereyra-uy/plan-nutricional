@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<title>Cocina de la semana</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --paper:#f5f5f1; --surface:#ffffff; --ink:#181b22; --muted:#6f7682; --line:#e8e8e2;
+    --cal:#d2603f; --dob:#2f8f7f; --des:#7c8696;
+    --cal-bg:#fbeee9; --dob-bg:#e7f3f0; --des-bg:#eef0f3;
+    --disp:"Space Grotesk",system-ui,sans-serif;
+    --body:"Inter",system-ui,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+  .wrap{max-width:520px;margin:0 auto;padding:22px 16px 80px}
+
+  header{margin-bottom:18px}
+  .title{font-family:var(--disp);font-weight:700;font-size:23px;letter-spacing:-.02em;margin:0}
+  .sub{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:5px}
+
+  .legend{display:flex;gap:14px;margin:14px 0 18px;flex-wrap:wrap}
+  .lg{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+  .dot{width:9px;height:9px;border-radius:50%;flex:none}
+
+  .weeknav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+  .wlabel{font-family:var(--disp);font-weight:600;font-size:16px}
+  .wlabel span{color:var(--muted);font-weight:500}
+  .arrow{width:38px;height:38px;border:1px solid var(--line);background:var(--surface);border-radius:11px;font-size:18px;line-height:1;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .arrow:active{background:var(--paper)}
+  .arrow:disabled{opacity:.32;cursor:default}
+  .dots{display:flex;gap:7px;justify-content:center;margin:0 0 16px}
+  .pdot{width:7px;height:7px;border-radius:50%;background:var(--line);transition:.2s}
+  .pdot.on{background:var(--ink);width:20px;border-radius:4px}
+
+  .hint{font-size:12.5px;color:var(--muted);line-height:1.45;margin-bottom:14px;padding:0 2px}
+  .hint b{color:var(--ink);font-weight:600}
+
+  .turns{display:flex;gap:6px;margin:0 0 9px}
+  .turn{font-family:var(--mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;padding:4px 10px;border-radius:20px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+  .turn.on{border-color:transparent;font-weight:500}
+  .turn.off{text-decoration:line-through;opacity:.7}
+
+  .tools{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+  .toolbtn{display:flex;align-items:center;gap:6px;border:1px dashed var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:12px 13px;font-family:var(--body);font-size:13.5px;font-weight:600;cursor:pointer}
+  .toolbtn .chev{margin-left:auto;color:var(--muted);font-weight:400}
+  .toolbtn:active{background:var(--paper)}
+
+  .days{display:flex;flex-direction:column;gap:12px}
+  .days.anim{animation:slide .26s ease}
+  @keyframes slide{from{opacity:0;transform:translateX(var(--from,18px))}to{opacity:1;transform:none}}
+
+  .day{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex}
+  .spine{width:5px;flex:none}
+  .daybody{flex:1;min-width:0;padding:13px 14px 6px}
+  .dhead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+  .dname{font-family:var(--disp);font-weight:600;font-size:16px}
+  .chip{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:20px;font-weight:500}
+
+  .meal{display:grid;grid-template-columns:82px 1fr 14px;align-items:center;gap:8px;padding:9px 2px;border-top:1px solid var(--line);cursor:pointer}
+  .meal:first-of-type{border-top:none}
+  .meal:active{background:var(--paper)}
+  .mlabel{font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);line-height:1.25}
+  .mname{font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chev{color:var(--line);font-size:15px;text-align:right}
+
+  /* bottom sheet */
+  .scrim{position:fixed;inset:0;background:rgba(20,22,28,.42);opacity:0;pointer-events:none;transition:opacity .22s;z-index:10}
+  .scrim.open{opacity:1;pointer-events:auto}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:11;background:var(--surface);border-radius:20px 20px 0 0;padding:8px 20px 30px;transform:translateY(100%);transition:transform .28s cubic-bezier(.32,.72,0,1);max-width:520px;margin:0 auto;max-height:82vh;overflow:auto}
+  .sheet.open{transform:none}
+  .grab{width:38px;height:4px;border-radius:3px;background:var(--line);margin:8px auto 16px}
+  .sh-tag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .sh-title{font-family:var(--disp);font-weight:600;font-size:20px;letter-spacing:-.01em;margin:4px 0 16px}
+  .qrow{display:flex;align-items:flex-end;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
+  .qrow .qn{flex:none;max-width:48%}
+  .qrow .qd{border-bottom:1px dotted var(--line);flex:1;margin:0 2px 5px;min-width:8px}
+  .qrow .qq{font-family:var(--mono);font-weight:500;font-size:13.5px;text-align:right;max-width:52%}
+  .sh-grouptitle{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:18px 0 2px}
+  .sh-note{margin-top:16px;font-size:13px;color:var(--muted);line-height:1.5;background:var(--paper);border-radius:10px;padding:11px 13px}
+
+  @media (prefers-reduced-motion: reduce){
+    .days.anim{animation:none}
+    .sheet,.scrim{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 class="title">Cocina de la semana</h1>
+    <div class="sub">Maratón BA · batch cooking</div>
+    <div class="legend">
+      <div class="lg"><span class="dot" style="background:var(--dob)"></span>Doble · trote + pesas</div>
+      <div class="lg"><span class="dot" style="background:var(--cal)"></span>Calidad · cargás</div>
+      <div class="lg"><span class="dot" style="background:var(--des)"></span>Descanso · liviano</div>
+    </div>
+  </header>
+
+  <div class="weeknav">
+    <button class="arrow" id="prev" aria-label="Semana anterior">‹</button>
+    <div class="wlabel" id="wlabel">Semana 1 <span>/ 4</span></div>
+    <button class="arrow" id="next" aria-label="Semana siguiente">›</button>
+  </div>
+  <div class="dots" id="dots"></div>
+
+  <div class="tools">
+    <button class="toolbtn" id="prepBtn">Qué cocinar<span class="chev">›</span></button>
+    <button class="toolbtn" id="shopBtn">Lista de compras<span class="chev">›</span></button>
+  </div>
+
+  <div class="hint">Tocá <b>Mañana</b> o <b>Tarde</b> en un día si faltaste a ese turno; las comidas se reacomodan.</div>
+
+  <div class="days" id="days"></div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true">
+  <div class="grab"></div>
+  <div id="sheetContent"></div>
+</div>
+
+<script>
+(function(){
+  // ---- quantities for each menu ----
+  var D = {
+    pre_cal:{tag:"Pre-entreno · calidad", name:"Jugo + banana", items:[
+      {n:"Jugo de naranja",q:"250 ml"},{n:"Banana",q:"1 u"},{n:"Miel",q:"1 cdita"}],
+      note:"Cargá carbo y llegá liviano a las series."},
+    pre_dob:{tag:"Pre-entreno · doble", name:"Yogur o té + banana", items:[
+      {n:"Yogur común o té",q:"150 / 220 ml"},{n:"Banana",q:"½ u"}],
+      note:"Alcanza para el trote subaeróbico."},
+    post_cal:{tag:"Post-entreno · calidad", name:"Tostadas + huevos", items:[
+      {n:"Pan integral",q:"2 reb."},{n:"Huevos",q:"2 u"},{n:"Fruta",q:"1 u"},{n:"Jugo de remolacha y naranja",q:"250 ml"}],
+      note:"La comida clave del día: repone glucógeno."},
+    post_dob:{tag:"Post-entreno · doble", name:"Tostada + huevo + palta", items:[
+      {n:"Pan integral",q:"2 reb."},{n:"Huevo",q:"1 u"},{n:"Palta",q:"½ u"},{n:"Queso magro",q:"40 g"}]},
+    desayuno:{tag:"Desayuno · descanso", name:"Yogur + tostada", items:[
+      {n:"Yogur común",q:"170 g"},{n:"Arándanos",q:"30 g"},{n:"Fruta",q:"1 u"},{n:"Pan integral con palta y queso",q:"1 reb."}],
+      note:"Alternativa: avena 60 g con mantequilla de maní 15 g."},
+    snack:{tag:"16:00 · antes de pesas", name:"Colación", items:[
+      {n:"Frutos secos",q:"30–50 g"},{n:"o Barritas de cereal",q:"100 g"},{n:"o Granola",q:"70 g"},{n:"o Galletas de arroz + mermelada",q:"3 u"}],
+      note:"Elegí una. No entres al gimnasio en vacío."},
+    merienda:{tag:"Merienda · opcional", name:"Yogur con fruta", items:[
+      {n:"Yogur común",q:"140 g"},{n:"Banana",q:"1 u"},{n:"Almendras",q:"15 g"}],
+      note:"Alternativa: cacao con leche de almendras 220 ml + fruta."},
+
+    pollo_arroz:{name:"Pollo + arroz + verduras", items:[
+      {n:"Pollo desmenuzado",q:"120 g"},{n:"Arroz cocido",q:"180 g"},{n:"Verduras al horno",q:"200 g"}]},
+    quinoa_pescado:{name:"Quinoa + pescado", items:[
+      {n:"Quinoa cocida",q:"150 g"},{n:"Pescado",q:"150 g"},{n:"Verduras",q:"150 g"}],note:"Cargá el carbo, es día de calidad."},
+    tarta_ensalada:{name:"Tarta + ensalada", items:[
+      {n:"Tarta",q:"250 g"},{n:"Ensalada",q:"a gusto"},{n:"Hummus (opc.)",q:"40 g"}]},
+    pasta_huevos:{name:"Pasta integral con huevos", items:[
+      {n:"Fideos integrales (secos)",q:"80 g"},{n:"Huevos",q:"2 u"},{n:"Brócoli + zanahoria",q:"150 g"}],note:"Lo único que hervís del día."},
+    huevos_arroz:{name:"Huevos revueltos + arroz", items:[
+      {n:"Huevos",q:"3 u"},{n:"Arroz cocido",q:"150 g"},{n:"Ensalada",q:"a gusto"}]},
+    pollo_boniato:{name:"Pollo + boniato + verduras", items:[
+      {n:"Pollo",q:"120 g"},{n:"Boniato",q:"200 g"},{n:"Verduras",q:"150 g"}]},
+    pescado_quinoa:{name:"Pescado + quinoa", items:[
+      {n:"Pescado",q:"150 g"},{n:"Quinoa cocida",q:"150 g"},{n:"Ensalada",q:"a gusto"}]},
+    pescado_arroz:{name:"Pescado + arroz", items:[
+      {n:"Pescado",q:"150 g"},{n:"Arroz cocido",q:"150 g"},{n:"Ensalada",q:"a gusto"}]},
+    cena_salmon:{name:"Sopa + salmón + fideos", items:[
+      {n:"Sopa de calabaza",q:"200 ml"},{n:"Salmón o pescado",q:"120 g"},{n:"Fideos integrales cocidos",q:"120 g"},{n:"Ensalada",q:"a gusto"}],note:"Cena del sábado: repone para el día siguiente."},
+    tarta_verduras:{name:"Tarta de verduras + ensalada", items:[
+      {n:"Tarta de verduras",q:"250 g"},{n:"Ensalada",q:"a gusto"},{n:"Palta",q:"½ u"}]},
+    pescado_plancha:{name:"Pescado a la plancha", items:[
+      {n:"Pescado",q:"150 g"},{n:"Palta",q:"½ u"},{n:"Brócoli",q:"150 g"}],note:"Descanso: sin almidón o porción chica."},
+    huevos_hummus:{name:"Huevos + hummus + tostada", items:[
+      {n:"Huevos",q:"2–3 u"},{n:"Hummus",q:"50 g"},{n:"Pan integral",q:"2 reb."},{n:"Ensalada",q:"a gusto"}]},
+    milanesa_boniato:{name:"Milanesa + boniato", items:[
+      {n:"Milanesa de carne",q:"120 g"},{n:"Boniato",q:"200 g"},{n:"Verduras",q:"150 g"}]},
+    milanesa_pure:{name:"Milanesa + puré de boniato", items:[
+      {n:"Milanesa de carne",q:"120 g"},{n:"Puré de boniato",q:"200 g"},{n:"Verduras",q:"150 g"}]},
+    milanesa_verduras:{name:"Milanesa (freezada) + verduras", items:[
+      {n:"Milanesa de carne",q:"120 g"},{n:"Verduras salteadas",q:"200 g"},{n:"Ensalada",q:"a gusto"}],note:"Usás la que congelaste el domingo."},
+    lentejas_ensalada:{name:"Lentejas + ensalada", items:[
+      {n:"Lentejas cocidas",q:"200 g"},{n:"Ensalada",q:"a gusto"},{n:"Pan integral (opc.)",q:"1 reb."}]},
+    lentejas_arroz:{name:"Lentejas + arroz", items:[
+      {n:"Lentejas cocidas",q:"200 g"},{n:"Arroz cocido",q:"100 g"},{n:"Ensalada",q:"a gusto"}]},
+    fideos_tofu:{name:"Fideos con tofu y verduras", items:[
+      {n:"Fideos integrales (secos)",q:"90 g"},{n:"Tofu o tempeh",q:"150 g"},{n:"Zapallitos, cebolla, espinaca",q:"150 g"}]},
+    huevos_boniato:{name:"Huevos + boniato", items:[
+      {n:"Huevos",q:"3 u"},{n:"Boniato",q:"200 g"},{n:"Ensalada",q:"a gusto"}]},
+    pescado_fideos:{name:"Pescado + fideos", items:[
+      {n:"Pescado",q:"150 g"},{n:"Fideos integrales cocidos",q:"120 g"},{n:"Ensalada",q:"a gusto"}]},
+    pescado_boniato:{name:"Pescado + boniato", items:[
+      {n:"Pescado",q:"150 g"},{n:"Boniato",q:"200 g"},{n:"Ensalada",q:"a gusto"}]},
+    tarta_caprese:{name:"Tarta caprese + ensalada", items:[
+      {n:"Tarta caprese",q:"250 g"},{n:"Ensalada",q:"a gusto"}]},
+    tofu_arroz:{name:"Tofu/tempeh + arroz", items:[
+      {n:"Tofu o tempeh",q:"150 g"},{n:"Arroz cocido",q:"180 g"},{n:"Verduras",q:"150 g"}]},
+    pollo_quinoa:{name:"Pollo + quinoa", items:[
+      {n:"Pollo",q:"120 g"},{n:"Quinoa cocida",q:"150 g"},{n:"Verduras",q:"150 g"}]},
+    carne_verduras:{name:"Carne + verduras + boniato", items:[
+      {n:"Carne",q:"120 g"},{n:"Verduras",q:"150 g"},{n:"Boniato",q:"200 g"}]},
+    quinoa_salmon_hummus:{name:"Quinoa con salmón + hummus", items:[
+      {n:"Quinoa cocida",q:"150 g"},{n:"Salmón o tofu",q:"120 g"},{n:"Verduras",q:"a gusto"},{n:"Hummus",q:"40 g"}],note:"Día grande: parte alta del carbo."},
+    garbanzos_arroz:{name:"Garbanzos + arroz", items:[
+      {n:"Garbanzos cocidos",q:"200 g"},{n:"Arroz cocido",q:"150 g"},{n:"Verduras",q:"150 g"}]},
+    garbanzos_ensalada:{name:"Garbanzos + ensalada + tostada", items:[
+      {n:"Garbanzos cocidos",q:"200 g"},{n:"Ensalada",q:"a gusto"},{n:"Pan integral",q:"1 reb."}]},
+    pollo_fideos:{name:"Pollo + fideos", items:[
+      {n:"Pollo",q:"120 g"},{n:"Fideos integrales cocidos",q:"120 g"},{n:"Verduras",q:"150 g"}]},
+    quinoa_boniato_pescado:{name:"Quinoa con boniato + pescado", items:[
+      {n:"Quinoa cocida",q:"100 g"},{n:"Boniato",q:"180 g"},{n:"Pescado",q:"150 g"}],note:"Parte alta del carbo (sábado)."}
+  };
+
+  var PREP = {
+    0:{tag:"Prep · Semana 1", name:"Qué cocinar", groups:[
+      {t:"Domingo · tanda grande", items:[{n:"Arroz",q:"olla grande"},{n:"Quinoa",q:"olla"},{n:"Verduras al horno",q:"brócoli, zanahoria, calabaza"},{n:"Pollo desmenuzado",q:"2 supremas"},{n:"Tarta ricota-espinaca",q:"1"},{n:"Hummus",q:"1 pote"}]},
+      {t:"Miércoles · repaso", items:[{n:"Pescado al horno",q:"3–4 filets"},{n:"Ensalada cortada",q:"varios días"}]}]},
+    1:{tag:"Prep · Semana 2", name:"Qué cocinar", groups:[
+      {t:"Domingo · tanda grande", items:[{n:"Fideos integrales",q:"olla"},{n:"Puré de boniato",q:"olla"},{n:"Verduras al horno",q:"calabaza, boniato"},{n:"Milanesas de carne",q:"freezá la mitad"},{n:"Lentejas guisadas",q:"olla"},{n:"Salsa de tomate",q:"1 pote"}]},
+      {t:"Miércoles · repaso", items:[{n:"Pescado al horno",q:"3–4 filets"},{n:"Ensalada cortada",q:"varios días"}]}]},
+    2:{tag:"Prep · Semana 3", name:"Qué cocinar", groups:[
+      {t:"Domingo · tanda grande", items:[{n:"Quinoa",q:"olla"},{n:"Arroz",q:"olla"},{n:"Verduras al horno",q:"berenjena, zapallitos"},{n:"Pescado al horno",q:"cantidad"},{n:"Tofu/tempeh salteado",q:"1 bandeja"},{n:"Tarta de verduras",q:"1"},{n:"Hummus",q:"1 pote"}]},
+      {t:"Miércoles · repaso", items:[{n:"Pollo",q:"1 suprema"},{n:"Carne",q:"1 porción"},{n:"Ensalada cortada",q:"varios días"}]}]},
+    3:{tag:"Prep · Semana 4", name:"Qué cocinar", groups:[
+      {t:"Domingo · tanda grande", items:[{n:"Fideos integrales",q:"olla"},{n:"Boniato al horno",q:"bandeja"},{n:"Verduras al horno",q:"mix"},{n:"Pollo desmenuzado",q:"2 supremas"},{n:"Garbanzos guisados",q:"olla"},{n:"Tarta caprese",q:"1"},{n:"Pesto o salsa",q:"1 pote"}]},
+      {t:"Miércoles · repaso", items:[{n:"Pescado al horno",q:"3–4 filets"},{n:"Ensalada cortada",q:"varios días"}]}]}
+  };
+
+  // ---- weekly shopping lists ----
+  var COMMON=[{n:"Huevos",q:"2 docenas"},{n:"Yogur común",q:"2 L"},{n:"Bananas",q:"10"},{n:"Fruta variada",q:"8"},{n:"Arándanos",q:"2 potes"},{n:"Jugo de naranja",q:"1,5 L"},{n:"Jugo de remolacha y naranja",q:"3"},{n:"Palta",q:"6"},{n:"Queso magro",q:"1 paq."}];
+  var FRESCOS=[
+    COMMON.concat([{n:"Pollo (suprema)",q:"2"},{n:"Pescado (merluza/brótola)",q:"6 filets"},{n:"Salmón",q:"1"},{n:"Verduras: brócoli, zanahoria, espinaca, lechuga, cebolla, boniato",q:"surtido"}]),
+    COMMON.concat([{n:"Carne para milanesas",q:"5–6"},{n:"Pescado",q:"4 filets"},{n:"Salmón",q:"1"},{n:"Verduras: calabaza, boniato, zanahoria, lechuga, cebolla",q:"surtido"}]),
+    COMMON.concat([{n:"Pescado",q:"6 filets"},{n:"Tofu o tempeh",q:"2"},{n:"Pollo (suprema)",q:"1"},{n:"Carne",q:"1"},{n:"Verduras: berenjena, zapallitos, espinaca, zanahoria, lechuga, cebolla, boniato",q:"surtido"}]),
+    COMMON.concat([{n:"Pollo (suprema)",q:"2"},{n:"Pescado",q:"4 filets"},{n:"Salmón",q:"1"},{n:"Muzzarella + albahaca (caprese)",q:"1"},{n:"Verduras: brócoli, zanahoria, calabaza, boniato, lechuga, cebolla",q:"surtido"}])
+  ];
+  var DESPENSA=[
+    [{n:"Arroz",q:"1 paq."},{n:"Quinoa",q:"1 paq."},{n:"Hummus o garbanzos",q:"1"}],
+    [{n:"Fideos integrales",q:"1 paq."},{n:"Lentejas",q:"1 paq."},{n:"Salsa de tomate",q:"1"}],
+    [{n:"Quinoa",q:"1 paq."},{n:"Arroz",q:"1 paq."},{n:"Hummus o garbanzos",q:"1"}],
+    [{n:"Fideos integrales",q:"1 paq."},{n:"Garbanzos",q:"1"},{n:"Pesto o albahaca",q:"1"}]
+  ];
+  var STAPLES=[{n:"Avena"},{n:"Granola"},{n:"Galletas de arroz"},{n:"Frutos secos"},{n:"Mantequilla de maní"},{n:"Mermelada"},{n:"Miel"},{n:"Pasas"},{n:"Dátiles"},{n:"Té"},{n:"Aceite de oliva"},{n:"Mostaza"},{n:"Salsa de soja"},{n:"Harina integral + levadura"}];
+  function shopFor(i){ return {tag:"Compras · Semana "+(i+1), name:"Lista sugerida", groups:[
+    {t:"Frescos · comprá esta semana", items:FRESCOS[i]},
+    {t:"Para reponer", items:DESPENSA[i]},
+    {t:"Despensa fija · si se está acabando", items:STAPLES}
+  ], note:"Cantidades aprox. para una persona en semana de entreno. Los frescos van semana a semana; la despensa fija dura varias."}; }
+
+  // ---- the 4 weeks (almuerzo / cena per day) ----
+  var WEEKS = [
+    [["Lun","dob","pollo_arroz","tarta_ensalada"],["Mar","cal","quinoa_pescado","huevos_arroz"],["Mié","dob","tarta_ensalada","pollo_boniato"],["Jue","cal","pasta_huevos","pescado_quinoa"],["Vie","dob","pollo_arroz","huevos_hummus"],["Sáb","cal","quinoa_boniato_pescado","cena_salmon"],["Dom","des","tarta_verduras","pescado_plancha"]],
+    [["Lun","dob","milanesa_boniato","lentejas_ensalada"],["Mar","cal","fideos_tofu","huevos_boniato"],["Mié","dob","lentejas_arroz","milanesa_pure"],["Jue","cal","pasta_huevos","pescado_fideos"],["Vie","dob","pescado_boniato","milanesa_verduras"],["Sáb","cal","quinoa_boniato_pescado","cena_salmon"],["Dom","des","tarta_caprese","pescado_plancha"]],
+    [["Lun","dob","tofu_arroz","tarta_ensalada"],["Mar","cal","quinoa_pescado","huevos_arroz"],["Mié","dob","tarta_ensalada","pollo_quinoa"],["Jue","cal","pasta_huevos","pescado_arroz"],["Vie","dob","pescado_arroz","carne_verduras"],["Sáb","cal","quinoa_salmon_hummus","cena_salmon"],["Dom","des","tarta_verduras","pescado_plancha"]],
+    [["Lun","dob","pollo_fideos","tarta_caprese"],["Mar","cal","garbanzos_arroz","huevos_boniato"],["Mié","dob","tarta_ensalada","pollo_boniato"],["Jue","cal","pasta_huevos","pescado_fideos"],["Vie","dob","pescado_boniato","garbanzos_ensalada"],["Sáb","cal","quinoa_boniato_pescado","cena_salmon"],["Dom","des","tarta_verduras","pescado_plancha"]]
+  ];
+
+  var TYPE = {dob:{label:"Doble",color:"var(--dob)",bg:"var(--dob-bg)"},cal:{label:"Calidad",color:"var(--cal)",bg:"var(--cal-bg)"},des:{label:"Descanso",color:"var(--des)",bg:"var(--des-bg)"}};
+
+  var wi = 0, fromDir = 1;
+  var daysEl=document.getElementById("days"), dotsEl=document.getElementById("dots"),
+      wlabel=document.getElementById("wlabel"), prev=document.getElementById("prev"), next=document.getElementById("next");
+
+  // per-day training state, keyed by week+day. default: trained both turns.
+  var state={};
+  function getState(di){ var k=wi+"-"+di; if(!state[k]) state[k]={am:true,pm:true}; return state[k]; }
+
+  function mealsFor(day, st){
+    var type=day[1];
+    var hasAM=(type==="cal"||type==="dob"), hasPM=(type==="dob");
+    var trainAM=hasAM && st.am;
+    var trainPM=hasPM && st.pm;
+    var rows=[];
+    if(trainAM){ rows.push(["PRE", type==="cal"?"pre_cal":"pre_dob"]); rows.push(["POST", type==="cal"?"post_cal":"post_dob"]); }
+    else { rows.push(["DESAYUNO","desayuno"]); }
+    rows.push(["ALMUERZO",day[2]]);
+    if(trainPM){ rows.push(["PRE GIMNASIO","snack"]); }
+    rows.push(["MERIENDA","merienda"]);
+    rows.push(["CENA",day[3]]);
+    return rows;
+  }
+
+  function turnPill(kind, on){
+    var lbl=kind==="am"?"Mañana":"Tarde";
+    var cls="turn "+(on?"on":"off");
+    var style=on?' style="background:var(--paper);color:var(--ink)"':'';
+    return '<button class="'+cls+'" data-turn="'+kind+'"'+style+'>'+(on?"✓ ":"")+lbl+"</button>";
+  }
+
+  function buildCard(day, di){
+    var type=day[1], t=TYPE[type], st=getState(di);
+    var hasAM=(type==="cal"||type==="dob"), hasPM=(type==="dob");
+    var card=document.createElement("div"); card.className="day"; card.dataset.di=di;
+    var turns="";
+    if(hasAM||hasPM){
+      turns='<div class="turns">'+(hasAM?turnPill("am",st.am):"")+(hasPM?turnPill("pm",st.pm):"")+'</div>';
+    }
+    var rows=mealsFor(day, st).map(function(r){
+      var dish=D[r[1]];
+      return '<div class="meal" data-id="'+r[1]+'"><span class="mlabel">'+r[0]+'</span><span class="mname">'+dish.name+'</span><span class="chev">›</span></div>';
+    }).join("");
+    card.innerHTML='<div class="spine" style="background:'+t.color+'"></div>'+
+      '<div class="daybody"><div class="dhead"><span class="dname">'+day[0]+
+      '</span><span class="chip" style="color:'+t.color+';background:'+t.bg+'">'+t.label+'</span></div>'+
+      turns+rows+'</div>';
+    return card;
+  }
+
+  function render(){
+    var week=WEEKS[wi];
+    wlabel.innerHTML="Semana "+(wi+1)+" <span>/ 4</span>";
+    prev.disabled=wi===0; next.disabled=wi===WEEKS.length-1;
+
+    dotsEl.innerHTML="";
+    WEEKS.forEach(function(_,i){var d=document.createElement("div");d.className="pdot"+(i===wi?" on":"");dotsEl.appendChild(d);});
+
+    daysEl.style.setProperty("--from",(fromDir>0?18:-18)+"px");
+    daysEl.classList.remove("anim"); void daysEl.offsetWidth; daysEl.classList.add("anim");
+
+    daysEl.innerHTML="";
+    week.forEach(function(day,di){ daysEl.appendChild(buildCard(day,di)); });
+  }
+
+  // ---- bottom sheet ----
+  var scrim=document.getElementById("scrim"), sheet=document.getElementById("sheet"), sc=document.getElementById("sheetContent");
+  function qrow(it){ var q=it.q?'<span class="qq">'+it.q+'</span>':''; return '<div class="qrow"><span class="qn">'+it.n+'</span><span class="qd"></span>'+q+'</div>'; }
+  function openSheet(obj){
+    var html="";
+    if(obj.tag) html+='<div class="sh-tag">'+obj.tag+'</div>';
+    html+='<div class="sh-title">'+obj.name+'</div>';
+    if(obj.groups){ obj.groups.forEach(function(g){ html+='<div class="sh-grouptitle">'+g.t+'</div>'; g.items.forEach(function(it){html+=qrow(it);}); }); }
+    else { obj.items.forEach(function(it){html+=qrow(it);}); }
+    if(obj.note) html+='<div class="sh-note">'+obj.note+'</div>';
+    sc.innerHTML=html;
+    scrim.classList.add("open"); sheet.classList.add("open");
+  }
+  function closeSheet(){ scrim.classList.remove("open"); sheet.classList.remove("open"); }
+  scrim.addEventListener("click",closeSheet);
+
+  daysEl.addEventListener("click",function(e){
+    var tb=e.target.closest(".turn");
+    if(tb){
+      var card=tb.closest(".day"); var di=+card.dataset.di;
+      var st=getState(di); st[tb.getAttribute("data-turn")]=!st[tb.getAttribute("data-turn")];
+      card.replaceWith(buildCard(WEEKS[wi][di], di));
+      return;
+    }
+    var m=e.target.closest(".meal"); if(!m) return;
+    openSheet(D[m.getAttribute("data-id")]);
+  });
+  document.getElementById("prepBtn").addEventListener("click",function(){ openSheet(PREP[wi]); });
+  document.getElementById("shopBtn").addEventListener("click",function(){ openSheet(shopFor(wi)); });
+
+  function go(dir){ var n=wi+dir; if(n<0||n>=WEEKS.length) return; fromDir=dir; wi=n; render(); }
+  prev.addEventListener("click",function(){go(-1);});
+  next.addEventListener("click",function(){go(1);});
+  document.addEventListener("keydown",function(e){ if(e.key==="ArrowRight")go(1); if(e.key==="ArrowLeft")go(-1); if(e.key==="Escape")closeSheet(); });
+
+  // ---- swipe ----
+  var x0=null,y0=null;
+  daysEl.addEventListener("touchstart",function(e){var t=e.changedTouches[0];x0=t.clientX;y0=t.clientY;},{passive:true});
+  daysEl.addEventListener("touchend",function(e){
+    if(x0===null)return; var t=e.changedTouches[0], dx=t.clientX-x0, dy=t.clientY-y0;
+    if(Math.abs(dx)>45 && Math.abs(dx)>Math.abs(dy)*1.4){ go(dx<0?1:-1); }
+    x0=y0=null;
+  },{passive:true});
+
+  render();
+})();
+</script>
+</body>
+</html>
